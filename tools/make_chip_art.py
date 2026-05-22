@@ -5,6 +5,12 @@
 Generate chip-art GDS containing the designer name on Metal4.
 Merged into the final design GDS by LibreLane via EXTRA_GDS_FILES.
 
+LibreLane's GDS merge step composites cells **by name** with the design's
+top cell. The polygons therefore have to live in a cell whose name matches
+the project's top module - otherwise they end up in an orphan cell that
+gets carried into the output file but is never instantiated and thus never
+visible in the synthesized layout.
+
 GF180MCU GDS layers used here:
   Metal4 = layer 46, datatype 0   (verify in KLayout if uncertain)
 
@@ -14,9 +20,13 @@ Metal5 (layer 81) is RESERVED by Tiny Tapeout for power - do not use.
 
 if __name__ == "__main__":
 
+	import math
 	import gdstk
 	import os
 
+	# Must match the `top_module` in info.yaml so LibreLane merges the
+	# polygons into the real design top cell.
+	TOP_CELL		= "tt_um_arty3_mac_engine"
 	NAME			= "L. GODDIJN"
 	METAL4_LAYER	= 46
 	METAL4_DT		= 0
@@ -24,10 +34,15 @@ if __name__ == "__main__":
 	# 1x2 GF180MCU core area is approximately
 	#   X: 3.36 .. 355.6 µm  (~352 µm wide)
 	#   Y: 3.92 .. 321.44 µm (~317 µm tall)
-	# "L. GODDIJN" at 8 µm height is ~80 µm wide, so an origin of (140, 80)
-	# centres it horizontally (text spans x = 140..220) and keeps it well
-	# inside the core in a band where Metal4 routing is sparse.
-	ORIGIN			= (140.0, 80.0)
+	#
+	# Placing the signature in the bottom-left corner, rotated 90 deg CCW
+	# so it reads vertically (baseline along +Y). At 8 µm character height
+	# the text is ~80 µm long, so it occupies roughly
+	#   X: 15 .. 23 µm
+	#   Y: 15 .. 95 µm
+	# which fits the empty Metal4 band visible in the synthesized view.
+	ANCHOR			= (15.0, 15.0)   # bottom-left corner of the rotated text
+	ROTATION_RAD	= math.pi / 2     # 90 deg CCW -> text reads upward
 
 	# Resolve output path relative to the repo root (parent of tools/),
 	# so the script works regardless of the caller's cwd.
@@ -40,18 +55,32 @@ if __name__ == "__main__":
 	os.makedirs(OUT_DIR, exist_ok=True)
 
 	lib		= gdstk.Library(name="chip_art")
-	cell	= lib.new_cell("chip_art")
+	cell	= lib.new_cell(TOP_CELL)
 
+	# Generate the text at the origin, then rotate it 90 deg CCW around
+	# (0, 0) and translate it to ANCHOR. Rotating about the origin first
+	# maps a glyph at (x, y) to (-y, x); after the rotation the text
+	# extends in -X from x = 0, so the post-rotation bounding box is
+	# x in [-TEXT_HEIGHT_UM, 0] and y in [0, text_length]. Shifting by
+	# (ANCHOR.x + TEXT_HEIGHT_UM, ANCHOR.y) places the bottom-left of the
+	# rotated text at ANCHOR.
 	polys = gdstk.text(
 		NAME,
 		size		= TEXT_HEIGHT_UM,
-		position	= ORIGIN,
+		position	= (0.0, 0.0),
 		layer		= METAL4_LAYER,
 		datatype	= METAL4_DT,
 	)
 
+	dx = ANCHOR[0] + TEXT_HEIGHT_UM
+	dy = ANCHOR[1]
 	for p in polys:
+		p.rotate(ROTATION_RAD, (0.0, 0.0))
+		p.translate(dx, dy)
 		cell.add(p)
 
 	lib.write_gds(OUT_PATH)
-	print(f"Wrote {OUT_PATH}: '{NAME}' on Metal4 at {ORIGIN}, {TEXT_HEIGHT_UM} um tall")
+	print(
+		f"Wrote {OUT_PATH}: '{NAME}' on Metal4, rotated 90 deg, "
+		f"anchored at {ANCHOR}, {TEXT_HEIGHT_UM} um glyph height"
+	)
