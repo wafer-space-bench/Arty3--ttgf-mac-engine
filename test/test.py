@@ -19,9 +19,9 @@ from cocotb.triggers import ClockCycles
 # ----------------------------------------------------------------------------
 # Constants
 # ----------------------------------------------------------------------------
-CLK_PERIOD_NS = 100       # 10 MHz nominal sysclk
+CLK_PERIOD_NS = 40        # 25 MHz nominal sysclk
 SCLK_HALF_CYC = 4         # sysclks per SCLK half period -> SCLK = 8 sysclks
-                          # SCLK ~= 1.25 MHz; below f_sys/4 limit (sec 9.1)
+                          # SCLK ~= 3.125 MHz; below f_sys/4 limit (sec 9.1)
 
 # Register addresses (mirror src/regfile.sv)
 A_STATUS      = 0x00

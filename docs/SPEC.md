@@ -32,7 +32,7 @@ responsibility - this chip is purely an arithmetic primitive.
 | Platform | Tiny Tapeout GF180MCU shuttle (wafer.space / GF26a). |
 | Top module | `tt_um_arty3_mac_engine` |
 | Tile footprint | 2x2 (≈ 680 x 320 µm, ≈ 217 600 µm², budget ≈ 7 000–8 000 gates). |
-| Target system clock | 10 MHz (per `info.yaml`). Max ≈ 50 MHz for reliability; SPI SCLK ≤ sysclk/4. |
+| Target system clock | 25 MHz (per `info.yaml`). Max ≈ 50 MHz for reliability; SPI SCLK ≤ sysclk/4. |
 
 Out of scope, explicitly: GEMM, convolution, softmax, layer normalisation,
 pooling, DMA, IRQ output, multi-PE arrays, multi-byte SPI burst transfers,
@@ -129,7 +129,7 @@ read-only `RESULT` register.
 | Data ordering   | MSB first                                    |
 | Frame size      | 8-bit bytes; transactions are 2 bytes        |
 | Byte ordering   | Multi-byte registers (accumulator) little-endian over the wire (LSB at lower address) |
-| Max SCLK        | ≤ `f_sys / 4` (≤ 2.5 MHz at 10 MHz sysclk)  |
+| Max SCLK        | ≤ `f_sys / 4` (≤ 6.25 MHz at 25 MHz sysclk) |
 | CS_N            | Active low. Must frame each 2-byte transaction. Mid-transaction de-assertion aborts the transaction and the partial bits are discarded. |
 | Idle SCLK level | 0                                            |
 | Sampling edge   | Rising edge of SCLK (MOSI sampled, MISO updated on falling edge). |
@@ -250,7 +250,7 @@ state register to return to `IDLE`). Add the CS_N synchroniser + edge-detect
 latency (3 sysclks total — 2 for the 2-flop synchroniser, 1 for the rising-
 edge detector that compares `cs_n_sync` against its one-cycle delay; see
 §9.1) to get the worst-case wall-clock latency from the physical CS_N pad
-rising edge: 5 sysclks (500 ns at 10 MHz).
+rising edge: 5 sysclks (200 ns at 25 MHz).
 
 ### 5.2 "Reset the accumulator"
 
@@ -454,7 +454,7 @@ The SPI slave lives entirely on `uio`. `uio_oe` is hard-wired to
 
 | Pin   | Direction | Function |
 |-------|-----------|----------|
-| `clk` | in        | System clock, 10 MHz nominal. |
+| `clk` | in        | System clock, 25 MHz nominal. |
 | `rst_n` | in      | Asynchronous active-low reset (synchronised internally). |
 | `ena` | in        | Always 1 when the project is selected. Ignored. |
 
@@ -514,11 +514,11 @@ traffic on:
 - **+2 sysclks** for the async-deassert synchroniser to release the design.
 - **+1 sysclk** for the CS_N rising-edge detector to clear and arm.
 
-→ Total: **3 system clock cycles** after `rst_n` rise. At 10 MHz this is
+→ Total: **3 system clock cycles** after `rst_n` rise. At 25 MHz this is
 120 ns. The host MUST hold `CS_N = 1` for at least this long after
 asserting `rst_n` and releasing it. Equivalently: the first SPI
 transaction after `rst_n` release must begin (CS_N falling edge) no
-earlier than 3 sysclks (300 ns at 10 MHz) after the rising edge of
+earlier than 3 sysclks (120 ns at 25 MHz) after the rising edge of
 `rst_n` at the chip pad.
 
 `CMD_RESET` (soft reset) has the same internal latency but does not affect
@@ -529,7 +529,7 @@ write that issued `CMD_RESET` completes cleanly).
 
 ## 9. Clock Domains
 
-The chip nominally has **one** clock domain: the system clock `clk` (10 MHz
+The chip nominally has **one** clock domain: the system clock `clk` (25 MHz
 target, ≤ 50 MHz reliable per the GF180MCU TT pad characteristics). All
 flops in `conv_pe`, `postproc`, `regfile`, and `cmd_fsm` are clocked by
 `clk`.
@@ -543,7 +543,7 @@ correct approach for the GF180MCU TT environment because:
 - The SPI master is the host MCU and is asynchronous to `clk`.
 - Designing flops on SCLK would create a tiny clock domain that LibreLane
   must time-close separately, which is not worth the area at the SCLK
-  rates required (≤ 2.5 MHz).
+  rates required (≤ 6.25 MHz).
 
 ### 9.1 Synchronisers
 
@@ -572,7 +572,7 @@ This requires:
 f_SCLK ≤ f_sys / 4
 ```
 
-At the nominal 10 MHz sysclk this caps SCLK at 2.5 MHz; at the 50 MHz
+At the nominal 25 MHz sysclk this caps SCLK at 6.25 MHz; at the 50 MHz
 practical max this caps SCLK at 12.5 MHz. The chip will not function
 correctly above this ratio.
 
@@ -639,7 +639,7 @@ Each test is a strict pre-condition for the next.
 | # | Name | Procedure | Pass criterion |
 |---|------|-----------|----------------|
 | T19 | Sysclk sweep | Repeat T7 with `clk` swept 1 MHz → 50 MHz in 1 MHz steps, SCLK fixed at 1 MHz. | All pass. |
-| T20 | SCLK sweep at 10 MHz sysclk | Repeat T4 with SCLK swept 100 kHz → 2.5 MHz. | All pass. |
+| T20 | SCLK sweep at 25 MHz sysclk | Repeat T4 with SCLK swept 100 kHz → 6.25 MHz. | All pass. |
 | T21 | SCLK over-rate failure mode | Run T4 at SCLK = `f_sys / 3` and `f_sys / 2`. | Documented failure (corruption) - confirms the f_sys/4 constraint. |
 
 ### 10.7 Endurance

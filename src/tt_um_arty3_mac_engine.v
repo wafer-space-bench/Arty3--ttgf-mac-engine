@@ -210,7 +210,7 @@ module tt_um_arty3_mac_engine (
     );
 
     // Heartbeat counter for uo_out[7] (sec 7.2): toggles every 2^19 cycles
-    // -> square wave of period 2^20 cycles (~9.5 Hz at the 10 MHz nominal clk).
+    // -> square wave of period 2^20 cycles (~23.8 Hz at the 25 MHz nominal clk).
 
     reg [19:0] heartbeat_cnt;
     always @(posedge clk or negedge rst_n_sync) begin

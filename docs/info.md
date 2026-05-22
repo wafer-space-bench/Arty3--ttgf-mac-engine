@@ -85,7 +85,7 @@ uo_out[1]    : STATUS.BUSY
 uo_out[2]    : STATUS.RESULT_VALID
 uo_out[3]    : STATUS.ACC_OVF_STK
 uo_out[6:4]  : cmd_fsm state[2:0]
-uo_out[7]    : heartbeat (clk / 2^20, ~9.5 Hz at 10 MHz)
+uo_out[7]    : heartbeat (clk / 2^20, ~23.8 Hz at 25 MHz)
 uio[0]       : SPI_CS_N (in,  active low)
 uio[1]       : SPI_SCLK (in,  mode 0)
 uio[2]       : SPI_MOSI (in)
@@ -98,8 +98,8 @@ chip's SPI bus with other slaves you must add an external buffer.
 
 ### Electrical / timing summary
 
-- **System clock:** nominal 10 MHz, max ~50 MHz.
-- **SPI clock:** must be ≤ sysclk/4 (≤ 2.5 MHz at 10 MHz sysclk).
+- **System clock:** nominal 25 MHz, max ~50 MHz.
+- **SPI clock:** must be ≤ sysclk/4 (≤ 6.25 MHz at 25 MHz sysclk).
 - **SPI mode:** 0 (CPOL=0, CPHA=0), MSB-first, 8-bit framed,
   2 bytes per transaction.
 - **Reset:** active-low asynchronous `rst_n`, synchronized internally with
@@ -127,7 +127,7 @@ Wire-up:
 | `uio[1]`   | SPI SCLK |
 | `uio[2]`   | SPI MOSI |
 | `uio[3]`   | SPI MISO (input on the host) |
-| `clk`      | host-provided system clock (≤ 50 MHz; 10 MHz nominal) |
+| `clk`      | host-provided system clock (≤ 50 MHz; 25 MHz nominal) |
 | `rst_n`    | host-controlled reset, active low |
 
 ### Smoke test
