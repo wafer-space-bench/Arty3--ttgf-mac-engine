@@ -132,7 +132,7 @@ Wire-up:
 
 ### Smoke test
 
-1. Hold `rst_n` low for at least 4 system clock cycles, then release it.
+1. Hold `rst_n` low for at least 3 system clock cycles, then release it.
 2. Read `STATUS` (addr `0x00`). Expected value: `0x01` (`IDLE = 1`).
 3. Read `FEATURE_ID` (addr `0x10`). Expected value: `0xA1`.
 
