@@ -6,7 +6,17 @@ SIM ?= icarus
 FST ?= -fst # Use more efficient FST format
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = project.v
+PROJECT_SOURCES = npu_types_pkg.sv         \
+				  pipeline_reg.sv          \
+				  bias_add.sv              \
+				  activation.sv            \
+				  quantize.sv              \
+				  postproc.sv              \
+				  conv_pe.sv               \
+				  spi_slave.sv             \
+				  regfile.sv               \
+				  cmd_fsm.sv               \
+				  tt_um_arty3_mac_engine.v
 
 ifneq ($(GATES),yes)
 
@@ -17,7 +27,7 @@ VERILOG_SOURCES += $(addprefix $(SRC_DIR)/,$(PROJECT_SOURCES))
 else
 
 # Gate level simulation:
-SIM_BUILD				= sim_build/gl
+SIM_BUILD        = sim_build/gl
 COMPILE_ARGS    += -DGL_TEST
 COMPILE_ARGS    += -DFUNCTIONAL
 COMPILE_ARGS    += -DUSE_POWER_PINS

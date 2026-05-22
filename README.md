@@ -1,5 +1,10 @@
 ![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg) ![](../../workflows/test/badge.svg) ![](../../workflows/fpga/badge.svg)
 
+# Simple MAC Engine w/ Postproc
+
+Quantized INT8 MAC engine with bias, activation, and quantizer postproc, SPI-controlled.
+Largely taken from my other [lg-npu](https://github.com/Arty3/lg-npu/) project.
+
 # Tiny Tapeout Verilog Project Template
 
 - [Read the documentation for project](docs/info.md)
