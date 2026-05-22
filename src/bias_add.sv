@@ -2,7 +2,10 @@
 // bias_add.sv - Add sign-extended INT8 bias to INT32 accumulator
 // ============================================================================
 
-module bias_add import npu_types_pkg::*; (
+module bias_add #(
+    parameter int DATA_W = 8,
+    parameter int ACC_W  = 32
+) (
     input  logic                       clk,
     input  logic                       rst_n,
 

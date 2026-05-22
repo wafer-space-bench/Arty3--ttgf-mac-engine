@@ -2,7 +2,10 @@
 // quantize.sv - INT32 -> INT8 requantization (right-shift + saturate)
 // ============================================================================
 
-module quantize import npu_types_pkg::*; (
+module quantize #(
+    parameter int DATA_W = 8,
+    parameter int ACC_W  = 32
+) (
     input  logic                       clk,
     input  logic                       rst_n,
 

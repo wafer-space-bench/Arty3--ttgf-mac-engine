@@ -6,8 +6,7 @@ SIM ?= icarus
 FST ?= -fst # Use more efficient FST format
 TOPLEVEL_LANG ?= verilog
 SRC_DIR = $(PWD)/../src
-PROJECT_SOURCES = npu_types_pkg.sv         \
-				  pipeline_reg.sv          \
+PROJECT_SOURCES = pipeline_reg.sv          \
 				  bias_add.sv              \
 				  activation.sv            \
 				  quantize.sv              \

@@ -5,12 +5,15 @@
 //   ACT_LEAKY_RELU:     x >= 0 ? x : x >>> LEAKY_SHIFT
 // ============================================================================
 
-module activation import npu_types_pkg::*; (
+module activation #(
+    parameter int ACC_W       = 32,
+    parameter int LEAKY_SHIFT = 3
+) (
     input  logic                       clk,
     input  logic                       rst_n,
 
     // Configuration
-    input  act_mode_e                  act_mode,
+    input  logic [1:0]                 act_mode,
 
     // Stream in  (INT32)
     input  logic signed [ACC_W-1:0]    in_data,
@@ -22,6 +25,9 @@ module activation import npu_types_pkg::*; (
     output logic                       out_valid,
     input  logic                       out_ready
 );
+
+    localparam logic [1:0] ACT_NONE       = 2'b00;
+    localparam logic [1:0] ACT_LEAKY_RELU = 2'b10;
 
     logic signed [ACC_W-1:0] activated;
 

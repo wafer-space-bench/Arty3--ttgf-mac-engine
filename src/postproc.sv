@@ -2,14 +2,17 @@
 // postproc.sv - Post-processing pipeline: bias -> activation -> quantize
 // ============================================================================
 
-module postproc import npu_types_pkg::*; (
+module postproc #(
+    parameter int DATA_W = 8,
+    parameter int ACC_W  = 32
+) (
     input  logic                       clk,
     input  logic                       rst_n,
 
     // Configuration
     input  logic signed [DATA_W-1:0]   bias_val,
     input  logic [4:0]                 quant_shift,
-    input  act_mode_e                  act_mode,
+    input  logic [1:0]                 act_mode,
 
     // Stream in  (INT32 accumulator result)
     input  logic signed [ACC_W-1:0]    in_data,

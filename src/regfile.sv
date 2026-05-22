@@ -18,7 +18,10 @@
 
 `default_nettype none
 
-module regfile import npu_types_pkg::*; (
+module regfile #(
+    parameter int DATA_W = 8,
+    parameter int ACC_W  = 32
+) (
     input  logic                       clk,
     input  logic                       rst_n,        // hard reset
     input  logic                       soft_reset,   // 1-cycle pulse from cmd_fsm

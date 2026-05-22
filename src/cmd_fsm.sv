@@ -18,7 +18,10 @@
 
 `default_nettype none
 
-module cmd_fsm import npu_types_pkg::*; (
+module cmd_fsm #(
+    parameter int DATA_W = 8,
+    parameter int ACC_W  = 32
+) (
     input  logic                       clk,
     input  logic                       rst_n,
 
