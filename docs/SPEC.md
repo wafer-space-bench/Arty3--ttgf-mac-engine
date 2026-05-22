@@ -31,7 +31,7 @@ responsibility - this chip is purely an arithmetic primitive.
 | Storage | None. No SRAM, no buffers, no DMA. Operands and results live in regfile bytes only. |
 | Platform | Tiny Tapeout GF180MCU shuttle (wafer.space / GF26a). |
 | Top module | `tt_um_arty3_mac_engine` |
-| Tile footprint | 2x2 (≈ 680 x 320 µm, ≈ 217 600 µm², budget ≈ 7 000–8 000 gates). |
+| Tile footprint | 1x2 (≈ 340 x 320 µm, ≈ 108 800 µm², budget ≈ 3 500–4 000 gates). |
 | Target system clock | 25 MHz (per `info.yaml`). Max ≈ 50 MHz for reliability; SPI SCLK ≤ sysclk/4. |
 
 Out of scope, explicitly: GEMM, convolution, softmax, layer normalisation,

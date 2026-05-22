@@ -21,7 +21,13 @@ if __name__ == "__main__":
 	METAL4_LAYER	= 46
 	METAL4_DT		= 0
 	TEXT_HEIGHT_UM	= 8.0
-	ORIGIN			= (450.0, 80.0)  # (x, y) in µm, inside the 704x317 core area
+	# 1x2 GF180MCU core area is approximately
+	#   X: 3.36 .. 355.6 µm  (~352 µm wide)
+	#   Y: 3.92 .. 321.44 µm (~317 µm tall)
+	# "L. GODDIJN" at 8 µm height is ~80 µm wide, so an origin of (140, 80)
+	# centres it horizontally (text spans x = 140..220) and keeps it well
+	# inside the core in a band where Metal4 routing is sparse.
+	ORIGIN			= (140.0, 80.0)
 
 	# Resolve output path relative to the repo root (parent of tools/),
 	# so the script works regardless of the caller's cwd.
