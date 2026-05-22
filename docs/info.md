@@ -2,7 +2,7 @@
 
 This file is the public datasheet for `tt_um_arty3_mac_engine`. For the
 authoritative specification (electrical, timing, edge cases, test matrix)
-see `docs/SPEC.md` in the repository.
+see `docs/SPEC.md` in the repositor or the link below.
 
 -->
 
@@ -180,8 +180,8 @@ out-of-order reads return stale shadow bytes.
 
 ### Simulation
 
-The repository ships a cocotb-based test suite (Icarus Verilog) under
-[`test/`](../test). It bit-bangs the SPI interface, exercises every
+The repository ships a cocotb-based test suite (Icarus Verilog) under `test/`.
+It bit-bangs the SPI interface, exercises every
 command, and includes saturation/overflow coverage. From `test/`:
 
 ```
@@ -195,3 +195,8 @@ hardware SPI mode 0 is sufficient. A logic analyzer (Saleae, sigrok-
 compatible, etc.) on `uo_out[6:0]` is useful for bring-up but not
 mandatory. If sharing the SPI bus with other slaves, add an external
 buffer on `uio[3]` (MISO) because the pad is permanently driven.
+
+## Additional links
+
+Project repository: [ttgf-mac-engine](https://github.com/Arty3/ttgf-mac-engine)
+Spec documentation: [SPEC.md](https://github.com/Arty3/ttgf-mac-engine/blob/main/docs/SPEC.md)
