@@ -169,8 +169,6 @@ module tt_um_arty3_mac_engine (
         .pe_ready_in  (pe_ready_in),
         .pe_acc_out   (pe_acc_out),
         .pe_acc_overflow (pe_acc_overflow),
-        .pe_valid_out (pe_valid_out),
-        .pe_ready_out (pe_ready_out),
         .pp_in_data   (pp_in_data),
         .pp_in_valid  (pp_in_valid),
         .pp_in_ready  (pp_in_ready),
@@ -212,7 +210,7 @@ module tt_um_arty3_mac_engine (
     );
 
     // Heartbeat counter for uo_out[7] (sec 7.2): toggles every 2^19 cycles
-    // -> square wave of period 2^20 cycles (~24 Hz at the 25 MHz nominal clk).
+    // -> square wave of period 2^20 cycles (~9.5 Hz at the 10 MHz nominal clk).
 
     reg [19:0] heartbeat_cnt;
     always @(posedge clk or negedge rst_n_sync) begin
@@ -237,9 +235,12 @@ module tt_um_arty3_mac_engine (
     // ena is fixed high by the TT mux when the project is selected.
     // ui_in is reserved for future use; tied off here.
     // uio_in[7:4] are reserved inputs.
+    // pe_valid_out / pe_ready_out are conv_pe's own handshake outputs;
+    // the cmd_fsm forces the handshake directly and ignores them.
 
     wire _unused_ena    = ena;
     wire _unused_ui_in  = &{ui_in,        1'b0};
     wire _unused_uio_in = &{uio_in[7:3],  1'b0};
+    wire _unused_pe     = &{pe_valid_out, pe_ready_out, 1'b0};
 
 endmodule

@@ -90,7 +90,10 @@ module regfile #(
     logic signed [DATA_W-1:0] result_r;
     logic                     result_valid_r;
     logic                     acc_ovf_stk_r;
-    logic signed [ACC_W-1:0]  acc_shadow_r;
+    // Shadow stores the upper three bytes only; ACC_B0 returns the live
+    // pe_acc_out[7:0] tap (sec 5.4), so bits [7:0] of the shadow would be
+    // dead storage.
+    logic signed [ACC_W-1:8]  acc_shadow_r;
 
     // Writes, side-effects, soft reset
 
@@ -132,8 +135,9 @@ module regfile #(
             // Same-cycle race vs end-of-MAC writeback: the shadow samples
             // the pre-MAC value of pe_acc_out (the PE's result_r updates on
             // this same clk edge; the value we see here is the old one).
+            // Only bits [31:8] are stored; B0 reads the live tap.
             if (rf_re && (rf_addr == A_ACC_B0)) begin
-                acc_shadow_r <= pe_acc_out;
+                acc_shadow_r <= pe_acc_out[ACC_W-1:8];
             end
 
             // Storage writes (CMD is dispatched separately via cmd_valid)

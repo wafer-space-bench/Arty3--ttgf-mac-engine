@@ -46,10 +46,6 @@ module cmd_fsm #(
     output logic                       pe_ready_in,
     input  logic signed [ACC_W-1:0]    pe_acc_out,
     input  logic                       pe_acc_overflow,
-    /* verilator lint_off UNUSEDSIGNAL */
-    input  logic                       pe_valid_out,
-    input  logic                       pe_ready_out,
-    /* verilator lint_on UNUSEDSIGNAL */
 
     // postproc handshake
     output logic signed [ACC_W-1:0]    pp_in_data,
@@ -75,9 +71,9 @@ module cmd_fsm #(
     state_e state_r;
     state_e next_state;
 
-    // Command opcodes (mirrors sec 4.2)
+    // Command opcodes (mirrors sec 4.2). NOP (8'h00) and unknown opcodes
+    // resolve to ST_IDLE via decode_cmd's default branch.
 
-    localparam logic [7:0] CMD_NOP      = 8'h00;
     localparam logic [7:0] CMD_MAC      = 8'h01;
     localparam logic [7:0] CMD_CLR_ACC  = 8'h02;
     localparam logic [7:0] CMD_POSTPROC = 8'h03;

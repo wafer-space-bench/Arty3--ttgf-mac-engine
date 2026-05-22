@@ -27,15 +27,12 @@ module quantize #(
     localparam logic signed [ACC_W-1:0] SAT_MIN = -32'sd128;
 
     logic signed [ACC_W-1:0]  shifted;
-    /* verilator lint_off UNUSEDSIGNAL */
-    logic signed [ACC_W-1:0]  clamped;
-    /* verilator lint_on UNUSEDSIGNAL */
     logic signed [DATA_W-1:0] quantized;
 
     assign shifted   = in_data >>> quant_shift;  // arithmetic right shift
-    assign clamped   = (shifted > SAT_MAX) ? SAT_MAX :
-                       (shifted < SAT_MIN) ? SAT_MIN : shifted;
-    assign quantized = clamped[DATA_W-1:0];
+    assign quantized = (shifted > SAT_MAX) ?  8'sd127 :
+                       (shifted < SAT_MIN) ? -8'sd128 :
+                                              shifted[DATA_W-1:0];
 
     pipeline_reg #(.DATA_W(DATA_W)) u_reg (
         .clk       (clk),
