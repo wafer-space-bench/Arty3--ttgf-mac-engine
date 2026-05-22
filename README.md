@@ -29,12 +29,19 @@ wrapper adds the SPI slave, a register file, and a command FSM.
   database (how it works, how to test, external hardware).
 - **[test/README.md](test/README.md)** - cocotb test instructions.
 
+## GDS Render
+
+![](./assets/gds_render.png)
+
+For a full 3D view click [here](https://arty3.github.io/ttgf-mac-engine/)
+
 ## Layout
 
 ```
 src/    RTL (SystemVerilog + the .v top wrapper)
 test/   cocotb testbench
 docs/   SPEC.md (authoritative), info.md (tinytapeout datasheet)
+assets/ Image assets for markdown files
 ```
 
 ## Tiny Tapeout
