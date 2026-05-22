@@ -5,11 +5,11 @@
 Generate chip-art GDS containing the designer name on Metal4.
 Merged into the final design GDS by LibreLane via EXTRA_GDS_FILES.
 
-LibreLane's GDS merge step composites cells **by name** with the design's
-top cell. The polygons therefore have to live in a cell whose name matches
-the project's top module - otherwise they end up in an orphan cell that
-gets carried into the output file but is never instantiated and thus never
-visible in the synthesized layout.
+The polygons live in a standalone cell named `chip_art`. LibreLane's
+EXTRA_GDS_FILES merge keeps cells of the same name as the design top
+separate (which produces a "multiple top cells" error in the KLayout
+render step), so we deliberately use a unique cell name and rely on the
+merge to add the geometry inside the top cell's coordinate frame.
 
 GF180MCU GDS layers used here:
   Metal4 = layer 46, datatype 0   (verify in KLayout if uncertain)
@@ -24,9 +24,7 @@ if __name__ == "__main__":
 	import gdstk
 	import os
 
-	# Must match the `top_module` in info.yaml so LibreLane merges the
-	# polygons into the real design top cell.
-	TOP_CELL		= "tt_um_arty3_mac_engine"
+	CELL_NAME		= "chip_art"
 	NAME			= "L. GODDIJN"
 	METAL4_LAYER	= 46
 	METAL4_DT		= 0
@@ -55,7 +53,7 @@ if __name__ == "__main__":
 	os.makedirs(OUT_DIR, exist_ok=True)
 
 	lib		= gdstk.Library(name="chip_art")
-	cell	= lib.new_cell(TOP_CELL)
+	cell	= lib.new_cell(CELL_NAME)
 
 	# Generate the text at the origin, then rotate it 90 deg CCW around
 	# (0, 0) and translate it to ANCHOR. Rotating about the origin first
