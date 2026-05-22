@@ -1,4 +1,4 @@
-# `tt_um_arty3_mac_engine` - Specification
+# Tiny Tapeout INT8 MAC Engine - Specification
 
 > Portions of this document (the conv_pe operand contract, the accumulator
 > semantics, and the post-processing pipeline including the activation models
@@ -14,7 +14,7 @@
 
 ## 1. The Chip As A Product
 
-`tt_um_arty3_mac_engine` is a standalone INT8 multiply-accumulate engine with
+Tiny Tapeout INT8 MAC Engine is a standalone INT8 multiply-accumulate engine with
 an on-chip INT8 post-processing pipeline (bias → activation → requantize),
 controlled over a 4-wire SPI slave interface. It is intended to be used as a
 co-processor for a quantized neural-network inference system: a host MCU
@@ -25,13 +25,13 @@ responsibility - this chip is purely an arithmetic primitive.
 | Aspect | Decision |
 |--------|----------|
 | Data type | INT8 (signed, two's complement) for operands, bias, and result. INT32 internal accumulator. |
-| Compute | One INT8×INT8 → INT32 MAC per `MAC` command. Accumulator persists across MAC commands until cleared. |
+| Compute | One INT8xINT8 → INT32 MAC per `MAC` command. Accumulator persists across MAC commands until cleared. |
 | Post-processing | Single shared pipeline: `bias_add` → `activation` (None / ReLU / Leaky ReLU, α = 1/8) → `quantize` (arithmetic right-shift + signed saturation). |
 | Host interface | SPI slave, mode 0, MSB-first, 8-bit framed. |
 | Storage | None. No SRAM, no buffers, no DMA. Operands and results live in regfile bytes only. |
 | Platform | Tiny Tapeout GF180MCU shuttle (wafer.space / GF26a). |
 | Top module | `tt_um_arty3_mac_engine` |
-| Tile footprint | 2×2 (≈ 680 × 320 µm, ≈ 217 600 µm², budget ≈ 7 000–8 000 gates). |
+| Tile footprint | 2x2 (≈ 680 x 320 µm, ≈ 217 600 µm², budget ≈ 7 000–8 000 gates). |
 | Target system clock | 25 MHz (per `info.yaml`). Max ≈ 50 MHz for reliability; SPI SCLK ≤ sysclk/4. |
 
 Out of scope, explicitly: GEMM, convolution, softmax, layer normalisation,
@@ -49,7 +49,7 @@ The arithmetic core is lifted from `lg-npu` and not redesigned.
 A single processing element performs:
 
 ```
-acc_out = acc_in + (act_in * wt_in)    // INT8 × INT8 → INT32 accumulate
+acc_out = acc_in + (act_in * wt_in)    // INT8 x INT8 → INT32 accumulate
 ```
 
 INT8 operand contract:
@@ -61,7 +61,7 @@ INT8 operand contract:
 | `acc_in`| 32    | Signed two's complement (INT32) |
 | `acc_out`| 32   | Signed two's complement (INT32) |
 
-The multiply is `INT8 × INT8 → INT16`, sign-extended to INT32 before being
+The multiply is `INT8 x INT8 → INT16`, sign-extended to INT32 before being
 added to `acc_in`. The result is registered inside the PE with a standard
 `valid/ready` handshake. Overflow of the INT32 accumulator wraps in two's
 complement and additionally sets `STATUS.ACC_OVF_STK` (see §4.1). It remains

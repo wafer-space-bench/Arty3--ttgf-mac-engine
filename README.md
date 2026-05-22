@@ -1,47 +1,45 @@
 ![](../../workflows/gds/badge.svg) ![](../../workflows/docs/badge.svg) ![](../../workflows/test/badge.svg) ![](../../workflows/fpga/badge.svg)
 
-# Simple MAC Engine w/ Postproc
+# Tiny Tapeout INT8 MAC Engine
 
-Quantized INT8 MAC engine with bias, activation, and quantizer postproc, SPI-controlled.
-Largely taken from my other [lg-npu](https://github.com/Arty3/lg-npu/) project.
+A standalone INT8 multiply–accumulate engine with an on-chip post-processing
+pipeline (bias → activation → requantize), controlled over a 4-wire SPI
+slave. Designed as a co-processor for quantized neural-network inference: a
+host MCU streams INT8 operands and bias values in over SPI, issues compute
+commands (`MAC`, `CLR_ACC`, `POSTPROC`, `RESET`), and reads back an INT8
+result. Storage and tiling are the host's responsibility - this chip is
+purely an arithmetic primitive.
 
-# Tiny Tapeout Verilog Project Template
+The arithmetic core (`conv_pe`, `bias_add`, `activation`, `quantize`,
+`postproc`) is lifted unchanged from the
+[`lg-npu`](https://github.com/Arty3/lg-npu/) project. The Tiny Tapeout
+wrapper adds the SPI slave, a register file, and a command FSM.
 
-- [Read the documentation for project](docs/info.md)
+- **Top module:** `tt_um_arty3_mac_engine`
+- **Tile footprint:** 2x2 (GF180MCU)
+- **Target system clock:** 25 MHz (max ~50 MHz; SPI SCLK ≤ sysclk/4)
+- **Data type:** signed INT8 operands, INT32 internal accumulator, INT8 result
 
-## What is Tiny Tapeout?
+## Documentation
 
-Tiny Tapeout is an educational project that aims to make it easier and cheaper than ever to get your digital and analog designs manufactured on a real chip.
+- **[docs/SPEC.md](docs/SPEC.md)** - full specification: SPI protocol,
+  register map, command sequencing, FSM, pin assignments, reset, timing,
+  and the test matrix. This is the authoritative reference.
+- **[docs/info.md](docs/info.md)** - public datasheet for the Tiny Tapeout
+  database (how it works, how to test, external hardware).
+- **[test/README.md](test/README.md)** - cocotb test instructions.
 
-To learn more and get started, visit https://tinytapeout.com.
+## Layout
 
-## Set up your Verilog project
+```
+src/    RTL (SystemVerilog + the .v top wrapper)
+test/   cocotb testbench
+docs/   SPEC.md (authoritative), info.md (tinytapeout datasheet)
+```
 
-1. Add your Verilog files to the `src` folder.
-2. Edit the [info.yaml](info.yaml) and update information about your project, paying special attention to the `source_files` and `top_module` properties. If you are upgrading an existing Tiny Tapeout project, check out our [online info.yaml migration tool](https://tinytapeout.github.io/tt-yaml-upgrade-tool/).
-3. Edit [docs/info.md](docs/info.md) and add a description of your project.
-4. Adapt the testbench to your design. See [test/README.md](test/README.md) for more information.
+## Tiny Tapeout
 
-The GitHub action will automatically build the ASIC files using [LibreLane](https://www.zerotoasiccourse.com/terminology/librelane/).
-
-## Enable GitHub actions to build the results page
-
-- [Enabling GitHub Pages](https://tinytapeout.com/faq/#my-github-action-is-failing-on-the-pages-part)
-
-## Resources
-
+- Project page: https://tinytapeout.com
 - [FAQ](https://tinytapeout.com/faq/)
 - [Digital design lessons](https://tinytapeout.com/digital_design/)
-- [Learn how semiconductors work](https://tinytapeout.com/siliwiz/)
-- [Join the community](https://tinytapeout.com/discord)
-- [Build your design locally](https://www.tinytapeout.com/guides/local-hardening/)
-
-## What next?
-
-- [Submit your design to the next shuttle](https://app.tinytapeout.com/).
-- Edit [this README](README.md) and explain your design, how it works, and how to test it.
-- Share your project on your social network of choice:
-  - LinkedIn [#tinytapeout](https://www.linkedin.com/search/results/content/?keywords=%23tinytapeout) [@TinyTapeout](https://www.linkedin.com/company/100708654/)
-  - Mastodon [#tinytapeout](https://chaos.social/tags/tinytapeout) [@matthewvenn](https://chaos.social/@matthewvenn)
-  - X (formerly Twitter) [#tinytapeout](https://twitter.com/hashtag/tinytapeout) [@tinytapeout](https://twitter.com/tinytapeout)
-  - Bluesky [@tinytapeout.com](https://bsky.app/profile/tinytapeout.com)
+- [Submit a design](https://app.tinytapeout.com/)
