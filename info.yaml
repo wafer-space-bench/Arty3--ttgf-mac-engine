@@ -5,7 +5,7 @@ project:
   discord:      "swagg3rballs"      # Your discord username, for communication and automatically assigning you a Tapeout role (optional)
   description:  "Quantized INT8 MAC engine with bias, activation, and quantizer postproc, SPI-controlled"      # One line description of what your project does
   language:     "SystemVerilog" # other examples include SystemVerilog, Amaranth, VHDL, etc
-  clock_hz:     19230769       # Clock frequency in Hz (or 0 if not applicable) -- 52ns period
+  clock_hz:     25000000       # Clock frequency in Hz (or 0 if not applicable) -- 40ns period
 
   # How many tiles your design occupies? A single tile is about 340x160 uM.
   tiles: "1x2"          # Valid values: 1x1, 1x2, 2x2, 3x2, 4x2, 3x4 or 4x4
