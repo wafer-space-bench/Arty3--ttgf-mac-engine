@@ -2,9 +2,7 @@
 // quantize.sv - INT32 -> INT8 requantization (right-shift + saturate)
 // ============================================================================
 
-module quantize
-    import npu_types_pkg::*;
-(
+module quantize import npu_types_pkg::*; (
     input  logic                       clk,
     input  logic                       rst_n,
 

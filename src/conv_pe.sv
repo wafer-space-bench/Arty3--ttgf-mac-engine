@@ -2,9 +2,7 @@
 // conv_pe.sv - Single processing element: INT8xINT8 -> INT32 MAC
 // ============================================================================
 
-module conv_pe
-    import npu_types_pkg::*;
-(
+module conv_pe import npu_types_pkg::*; (
     input  logic                      clk,
     input  logic                      rst_n,
 

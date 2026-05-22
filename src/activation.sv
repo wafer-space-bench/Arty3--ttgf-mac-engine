@@ -5,9 +5,7 @@
 //   ACT_LEAKY_RELU:     x >= 0 ? x : x >>> LEAKY_SHIFT
 // ============================================================================
 
-module activation
-    import npu_types_pkg::*;
-(
+module activation import npu_types_pkg::*; (
     input  logic                       clk,
     input  logic                       rst_n,
 

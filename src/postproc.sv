@@ -2,9 +2,7 @@
 // postproc.sv - Post-processing pipeline: bias -> activation -> quantize
 // ============================================================================
 
-module postproc
-    import npu_types_pkg::*;
-(
+module postproc import npu_types_pkg::*; (
     input  logic                       clk,
     input  logic                       rst_n,
 

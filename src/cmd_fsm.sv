@@ -18,9 +18,7 @@
 
 `default_nettype none
 
-module cmd_fsm
-    import npu_types_pkg::*;
-(
+module cmd_fsm import npu_types_pkg::*; (
     input  logic                       clk,
     input  logic                       rst_n,
 
