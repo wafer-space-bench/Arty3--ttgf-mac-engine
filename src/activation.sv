@@ -33,10 +33,10 @@ module activation #(
 
     always_comb begin
         case (act_mode)
-            ACT_NONE:       activated = in_data;
+            ACT_NONE:       activated =  in_data;
             ACT_LEAKY_RELU: activated = (in_data < 0)
-                                        ? (in_data >>> LEAKY_SHIFT)
-                                        : in_data;
+                                      ? (in_data >>> LEAKY_SHIFT)
+                                      :  in_data;
             default:        activated = (in_data < 0) ? '0 : in_data;
         endcase
     end

@@ -56,8 +56,8 @@ module spi_slave (
             cs_n_ff     <= {cs_n_ff[0], spi_cs_n_pad};
             sclk_ff     <= {sclk_ff[0], spi_sclk_pad};
             mosi_ff     <= {mosi_ff[0], spi_mosi_pad};
-            cs_n_sync_d <= cs_n_ff[1];
-            sclk_sync_d <= sclk_ff[1];
+            cs_n_sync_d <=  cs_n_ff[1];
+            sclk_sync_d <=  sclk_ff[1];
         end
     end
 
@@ -65,8 +65,8 @@ module spi_slave (
     wire sclk_sync = sclk_ff[1];
     wire mosi_sync = mosi_ff[1];
 
-    wire cs_n_rise =  cs_n_sync & ~cs_n_sync_d;
-    wire cs_n_fall = ~cs_n_sync &  cs_n_sync_d;
+    wire cs_n_rise =  cs_n_sync   &  ~cs_n_sync_d;
+    wire cs_n_fall = ~cs_n_sync   &   cs_n_sync_d;
     wire sclk_rise = (~cs_n_sync) & ( sclk_sync & ~sclk_sync_d);
     wire sclk_fall = (~cs_n_sync) & (~sclk_sync &  sclk_sync_d);
 
