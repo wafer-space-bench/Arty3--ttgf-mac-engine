@@ -33,9 +33,9 @@ GATES = os.environ.get("GATES", "no").lower() == "yes"
 # ----------------------------------------------------------------------------
 # Constants
 # ----------------------------------------------------------------------------
-CLK_PERIOD_NS = 40        # 25 MHz nominal sysclk
+CLK_PERIOD_NS = 52        # ~19.23 MHz nominal sysclk (1/52ns)
 SCLK_HALF_CYC = 4         # sysclks per SCLK half period -> SCLK = 8 sysclks
-                          # SCLK ~= 3.125 MHz; below f_sys/4 limit (sec 9.1)
+                          # SCLK ~= 2.40 MHz; below f_sys/4 limit (sec 9.1)
 
 # Register addresses (mirror src/regfile.sv)
 A_STATUS      = 0x00

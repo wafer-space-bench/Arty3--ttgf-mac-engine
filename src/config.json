@@ -16,8 +16,8 @@
   "PL_TARGET_DENSITY_PCT": 60,
 
   "//": "CLOCK_PERIOD - Increase this in case you are getting setup time violations.",
-  "//": "The value is in nanoseconds, so 40ns == 25MHz.",
-  "CLOCK_PERIOD": 40,
+  "//": "The value is in nanoseconds, so 52ns == 19.23MHz (slowed from 40ns to close ss_125C_3v00 timing on the 1x2 tile).",
+  "CLOCK_PERIOD": 52,
 
   "//": "Hold slack margin - Increase them in case you are getting hold violations.",
   "PL_RESIZER_HOLD_SLACK_MARGIN": 0.1,

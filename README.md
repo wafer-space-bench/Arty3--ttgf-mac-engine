@@ -17,7 +17,7 @@ wrapper adds the SPI slave, a register file, and a command FSM.
 
 - **Top module:** `tt_um_arty3_mac_engine`
 - **Tile footprint:** 1x2 (GF180MCU)
-- **Target system clock:** 25 MHz (max ~50 MHz; SPI SCLK ≤ sysclk/4)
+- **Target system clock:** 19.23 MHz (52 ns; max ~50 MHz; SPI SCLK ≤ sysclk/4)
 - **Data type:** signed INT8 operands, INT32 internal accumulator, INT8 result
 
 ## Documentation
