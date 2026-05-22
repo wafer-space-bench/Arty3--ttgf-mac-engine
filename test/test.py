@@ -11,9 +11,23 @@ Drives the DUT through its SPI-mode-0 slave on uio[3:0]:
 See docs/SPEC.md for the full register map and command semantics.
 """
 
+import os
+
 import cocotb
 from cocotb.clock import Clock
 from cocotb.triggers import ClockCycles
+
+
+# ----------------------------------------------------------------------------
+# Gate-level vs. RTL build detection
+# ----------------------------------------------------------------------------
+# The Tiny Tapeout template sets GATES=yes when running the synthesized
+# gate-level netlist (post-synth flatten). After flattening, internal
+# hierarchical names like `tb.user_project.u_pe.result_r` no longer exist,
+# so any test that pokes internal RTL nets via cocotb VPI handles must be
+# skipped in that build. Tests that exercise the design purely through the
+# SPI interface (ui_in / uio_in / uo_out / uio_out) run in both modes.
+GATES = os.environ.get("GATES", "no").lower() == "yes"
 
 
 # ----------------------------------------------------------------------------
@@ -451,11 +465,17 @@ async def test_miso_idle_low(dut):
 
 
 def _force_pe_acc(dut, value: int):
-    """Deposit a 32-bit value into the PE accumulator register."""
+    """Deposit a 32-bit value into the PE accumulator register.
+
+    Reaches into the RTL hierarchy via cocotb VPI. This only works against
+    the unsynthesized RTL build; after gate-level synthesis the design is
+    flattened and `u_pe.result_r` no longer exists as a named handle.
+    Tests that call this helper must be guarded with `skip=GATES`.
+    """
     dut.user_project.u_pe.result_r.value = value & 0xFFFF_FFFF
 
 
-@cocotb.test()
+@cocotb.test(skip=GATES)
 async def test_acc_overflow_sticks(dut):
     """T9: a MAC whose signed sum overflows INT32 sets ACC_OVF_STK, and the
     flag stays set across subsequent non-overflowing MACs."""
@@ -489,7 +509,7 @@ async def test_acc_overflow_sticks(dut):
         f"ACC_OVF_STK should clear on hard reset, status=0x{s3:02x}"
 
 
-@cocotb.test()
+@cocotb.test(skip=GATES)
 async def test_quantize_saturate_high(dut):
     """T13: a large positive ACC clamps to +127 at the quantizer output."""
     await reset_dut(dut)
@@ -505,7 +525,7 @@ async def test_quantize_saturate_high(dut):
     assert r == 0x7F, f"saturate-high expected 0x7F, got 0x{r:02x}"
 
 
-@cocotb.test()
+@cocotb.test(skip=GATES)
 async def test_quantize_saturate_low(dut):
     """T14: a large negative ACC clamps to -128 at the quantizer output."""
     await reset_dut(dut)
