@@ -40,8 +40,8 @@ flowchart LR
 - **`postproc`** - three-stage pipeline: `bias_add` → `activation` (NONE /
   ReLU / Leaky ReLU, slope = 1/8) → `quantize` (arithmetic right shift +
   signed saturation to INT8). Latency: 3 cycles.
-- **`cmd_fsm`** - 6-state sequencer (IDLE / MAC / CLR / PP_FEED / PP_WAIT
-  / SOFTRST) that owns the handshake to `conv_pe` and `postproc`.
+- **`cmd_fsm`** - 6-state sequencer (IDLE, MAC, CLR, PP_FEED, PP_WAIT,
+  SOFTRST) that owns the handshake to `conv_pe` and `postproc`.
 - **`regfile`** - 7-bit-addressed byte-wide register file. Holds operands,
   bias, quantizer/activation configuration, status flags, and the read
   ports for the accumulator and the result.
