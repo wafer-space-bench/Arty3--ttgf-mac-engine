@@ -196,6 +196,12 @@ unmapped addresses read as `0x00` and ignore writes.
 | 0x0B  | `ACC_B3`    | RO  | 0x00  | Accumulator bits 31:24 (MSB, sign). |
 | 0x0C  | `RESULT`    | RO  | 0x00  | INT8 output of the last `CMD_POSTPROC`. |
 | 0x10  | `FEATURE_ID`| RO  | 0xA1  | Hardware ID. Bits 7:4 = `0xA` (engine family), bits 3:0 = `0x1` (rev 1). |
+| 0x12  | `OP_A1`     | RW  | 0x00  | INT8 lane-1 multiplicand A for `CMD_DOT4`. |
+| 0x13  | `OP_B1`     | RW  | 0x00  | INT8 lane-1 multiplicand B for `CMD_DOT4`. |
+| 0x14  | `OP_A2`     | RW  | 0x00  | INT8 lane-2 multiplicand A for `CMD_DOT4`. |
+| 0x15  | `OP_B2`     | RW  | 0x00  | INT8 lane-2 multiplicand B for `CMD_DOT4`. |
+| 0x16  | `OP_A3`     | RW  | 0x00  | INT8 lane-3 multiplicand A for `CMD_DOT4`. |
+| 0x17  | `OP_B3`     | RW  | 0x00  | INT8 lane-3 multiplicand B for `CMD_DOT4`. |
 
 ### 4.1 `STATUS` (0x00)
 
@@ -222,6 +228,7 @@ the same combinational cycle that the new command is observed.
 | 0x01 | `CMD_MAC`       | `acc ← acc + OP_A * OP_B`. Single cycle of compute, plus regfile latency. |
 | 0x02 | `CMD_CLR_ACC`   | `acc ← 0`. Does not touch `OP_A`/`OP_B`/`BIAS`/etc. |
 | 0x03 | `CMD_POSTPROC`  | Drive a snapshot of `acc` through `bias_add → activation → quantize`. Result latched into `RESULT`, `STATUS.RESULT_VALID` set. |
+| 0x04 | `CMD_DOT4`      | 4-cycle burst MAC: `acc ← acc + Σ OP_A{i} * OP_B{i}` for i = 0..3, where lane 0 reuses `OP_A`/`OP_B` and lanes 1..3 use `OP_A1..3`/`OP_B1..3`. Halves SPI overhead per output vs. four `CMD_MAC` issues. Per-lane overflow is folded into `STATUS.ACC_OVF_STK`. |
 | 0xFF | `CMD_RESET`     | Soft reset. Equivalent to one cycle of `rst_n` low. Clears `acc`, `RESULT`, all sticky flags; preserves `OP_A`/`OP_B`/`BIAS`/`QUANT_SHIFT`/`ACT_MODE`. |
 
 All other codes are treated as `CMD_NOP`.
@@ -341,12 +348,12 @@ defined.
 used for ACC reads (§5.4) and the `RESULT` write. The regfile owns
 everything else.
 
-The `state` register is 3 bits wide and encodes 6 reachable states
-(`IDLE`, `MAC`, `CLR`, `PP_FEED`, `PP_WAIT`, `SOFTRST`). Codes `3'b110`
-and `3'b111` are reserved and unreachable in normal operation. If either
-is observed on `uo_out[4:6]` during post-silicon bring-up, the chip has
-suffered an SEU or some other physical fault — normal `cmd_fsm` next-state
-logic cannot produce those encodings.
+The `state` register is 3 bits wide and encodes 7 reachable states
+(`IDLE`, `MAC`, `CLR`, `PP_FEED`, `PP_WAIT`, `SOFTRST`, `DOT4`). Code
+`3'b111` is reserved and unreachable in normal operation. If it is
+observed on `uo_out[4:6]` during post-silicon bring-up, the chip has
+suffered an SEU or some other physical fault — normal `cmd_fsm`
+next-state logic cannot produce that encoding.
 
 State transitions are **registered**: `next_state` is combinational on
 `cmd_valid` and the current `state`, and the state register updates on
@@ -362,12 +369,14 @@ stateDiagram-v2
     IDLE  --> CLR      : cmd_valid & cmd == CMD_CLR_ACC
     IDLE  --> PP_FEED  : cmd_valid & cmd == CMD_POSTPROC
     IDLE  --> SOFTRST  : cmd_valid & cmd == CMD_RESET
+    IDLE  --> DOT4     : cmd_valid & cmd == CMD_DOT4
 
     MAC      --> IDLE  : 1 cycle
     CLR      --> IDLE  : 1 cycle
     PP_FEED  --> PP_WAIT : postproc accepted (in_valid & in_ready)
     PP_WAIT  --> IDLE  : postproc out_valid (RESULT latched, RESULT_VALID set)
     SOFTRST  --> IDLE  : 1 cycle (all soft state cleared)
+    DOT4     --> IDLE  : 4 cycles (lane counter wraps from 3)
 ```
 
 ### 6.1 What each state does
@@ -380,6 +389,7 @@ stateDiagram-v2
 | `PP_FEED`| Reads `BIAS`, `QUANT_SHIFT`, `ACT_MODE` as static inputs to `postproc`. | Drives `postproc.in_data = conv_pe.acc_out`, `in_valid = 1`. Waits for `in_ready`. |
 | `PP_WAIT`| - | Holds `in_valid = 0`. Waits for `postproc.out_valid`. When it fires, captures `postproc.out_data` into `RESULT`, sets `STATUS.RESULT_VALID`. |
 | `SOFTRST`| Pulses an internal reset that re-applies the reset values listed in §4 to: `acc`, `RESULT`, `STATUS.RESULT_VALID`, `STATUS.ACC_OVF_STK`. | Re-initialises `conv_pe.result_r` and the three `postproc` pipeline registers. |
+| `DOT4`   | Reads `OP_A`/`OP_B` and `OP_A{1..3}`/`OP_B{1..3}` combinationally; an internal 2-bit lane counter selects one pair per cycle. | Behaves like `MAC` for four consecutive cycles, accumulating each `OP_A{i} * OP_B{i}` into `result_r`. Per-cycle overflow is OR-ed into `ACC_OVF_STK`. Exits to `IDLE` on the cycle where the lane counter reaches 3. |
 
 `STATUS.BUSY` is `(state != IDLE)`. The accept/drop rule for a `CMD` write
 that arrives near a state transition is defined in §4.2.

@@ -41,6 +41,15 @@ module regfile #(
     // Configuration outputs (consumed by cmd_fsm / postproc / conv_pe)
     output logic signed [DATA_W-1:0]   op_a,
     output logic signed [DATA_W-1:0]   op_b,
+    // Additional operand lanes for the burst-MAC command (CMD_DOT4).
+    // Lane 0 reuses op_a / op_b above so a single MAC keeps working
+    // without writing the extra lane registers.
+    output logic signed [DATA_W-1:0]   op_a1,
+    output logic signed [DATA_W-1:0]   op_b1,
+    output logic signed [DATA_W-1:0]   op_a2,
+    output logic signed [DATA_W-1:0]   op_b2,
+    output logic signed [DATA_W-1:0]   op_a3,
+    output logic signed [DATA_W-1:0]   op_b3,
     output logic signed [DATA_W-1:0]   bias_val,
     output logic [4:0]                 quant_shift_val,
     output logic [1:0]                 act_mode_bits,
@@ -70,6 +79,14 @@ module regfile #(
     localparam logic [6:0] A_BIAS        = 7'h04;
     localparam logic [6:0] A_QUANT_SHIFT = 7'h05;
     localparam logic [6:0] A_ACT_MODE    = 7'h06;
+    // Lane 1..3 operands for the burst-MAC command (CMD_DOT4).
+    // Lane 0 uses A_OP_A / A_OP_B (0x02 / 0x03).
+    localparam logic [6:0] A_OP_A1       = 7'h12;
+    localparam logic [6:0] A_OP_B1       = 7'h13;
+    localparam logic [6:0] A_OP_A2       = 7'h14;
+    localparam logic [6:0] A_OP_B2       = 7'h15;
+    localparam logic [6:0] A_OP_A3       = 7'h16;
+    localparam logic [6:0] A_OP_B3       = 7'h17;
     localparam logic [6:0] A_ACC_B0      = 7'h08;
     localparam logic [6:0] A_ACC_B1      = 7'h09;
     localparam logic [6:0] A_ACC_B2      = 7'h0A;
@@ -83,6 +100,8 @@ module regfile #(
 
     logic signed [DATA_W-1:0] op_a_r;
     logic signed [DATA_W-1:0] op_b_r;
+    logic signed [DATA_W-1:0] op_a1_r, op_a2_r, op_a3_r;
+    logic signed [DATA_W-1:0] op_b1_r, op_b2_r, op_b3_r;
     logic signed [DATA_W-1:0] bias_r;
     logic [4:0]               quant_shift_r;
     logic [1:0]               act_mode_r;
@@ -101,6 +120,12 @@ module regfile #(
         if (!rst_n) begin
             op_a_r         <= '0;
             op_b_r         <= '0;
+            op_a1_r        <= '0;
+            op_b1_r        <= '0;
+            op_a2_r        <= '0;
+            op_b2_r        <= '0;
+            op_a3_r        <= '0;
+            op_b3_r        <= '0;
             bias_r         <= '0;
             quant_shift_r  <= 5'd0;
             act_mode_r     <= 2'b00;
@@ -145,6 +170,12 @@ module regfile #(
                 unique case (rf_addr)
                     A_OP_A:        op_a_r        <= rf_wdata;
                     A_OP_B:        op_b_r        <= rf_wdata;
+                    A_OP_A1:       op_a1_r       <= rf_wdata;
+                    A_OP_B1:       op_b1_r       <= rf_wdata;
+                    A_OP_A2:       op_a2_r       <= rf_wdata;
+                    A_OP_B2:       op_b2_r       <= rf_wdata;
+                    A_OP_A3:       op_a3_r       <= rf_wdata;
+                    A_OP_B3:       op_b3_r       <= rf_wdata;
                     A_BIAS:        bias_r        <= rf_wdata;
                     A_QUANT_SHIFT: quant_shift_r <= rf_wdata[4:0];
                     A_ACT_MODE:    act_mode_r    <= rf_wdata[1:0];
@@ -159,6 +190,12 @@ module regfile #(
     // Configuration taps
     assign op_a            = op_a_r;
     assign op_b            = op_b_r;
+    assign op_a1           = op_a1_r;
+    assign op_b1           = op_b1_r;
+    assign op_a2           = op_a2_r;
+    assign op_b2           = op_b2_r;
+    assign op_a3           = op_a3_r;
+    assign op_b3           = op_b3_r;
     assign bias_val        = bias_r;
     assign quant_shift_val = quant_shift_r;
     assign act_mode_bits   = act_mode_r;
@@ -189,6 +226,12 @@ module regfile #(
             A_STATUS:      rf_rdata = status_byte;
             A_OP_A:        rf_rdata = op_a_r;
             A_OP_B:        rf_rdata = op_b_r;
+            A_OP_A1:       rf_rdata = op_a1_r;
+            A_OP_B1:       rf_rdata = op_b1_r;
+            A_OP_A2:       rf_rdata = op_a2_r;
+            A_OP_B2:       rf_rdata = op_b2_r;
+            A_OP_A3:       rf_rdata = op_a3_r;
+            A_OP_B3:       rf_rdata = op_b3_r;
             A_BIAS:        rf_rdata = bias_r;
             A_QUANT_SHIFT: rf_rdata = {3'b000, quant_shift_r};
             A_ACT_MODE:    rf_rdata = {6'b000000, act_mode_r};

@@ -40,8 +40,8 @@ flowchart LR
 - **`postproc`** - three-stage pipeline: `bias_add` → `activation` (NONE /
   ReLU / Leaky ReLU, slope = 1/8) → `quantize` (arithmetic right shift +
   signed saturation to INT8). Latency: 3 cycles.
-- **`cmd_fsm`** - 6-state sequencer (IDLE, MAC, CLR, PP_FEED, PP_WAIT,
-  SOFTRST) that owns the handshake to `conv_pe` and `postproc`.
+- **`cmd_fsm`** - 7-state sequencer (IDLE, MAC, CLR, PP_FEED, PP_WAIT,
+  SOFTRST, DOT4) that owns the handshake to `conv_pe` and `postproc`.
 - **`regfile`** - 7-bit-addressed byte-wide register file. Holds operands,
   bias, quantizer/activation configuration, status flags, and the read
   ports for the accumulator and the result.
@@ -65,6 +65,12 @@ All registers are 8 bits. The top bit of the SPI header is R/W#; the low
 | 0x08–0x0B | `ACC_B0..B3` | RO | 0x00 | Accumulator, little-endian. Reading `ACC_B0` snapshots the upper bytes into a coherent shadow. |
 | 0x0C  | `RESULT`      | RO  | 0x00  | INT8 output of the last `CMD_POSTPROC`. Reading clears `RESULT_VALID`. |
 | 0x10  | `FEATURE_ID`  | RO  | 0xA1  | Engine family + revision |
+| 0x12  | `OP_A1`       | RW  | 0x00  | Lane-1 multiplicand A (`CMD_DOT4`) |
+| 0x13  | `OP_B1`       | RW  | 0x00  | Lane-1 multiplicand B (`CMD_DOT4`) |
+| 0x14  | `OP_A2`       | RW  | 0x00  | Lane-2 multiplicand A (`CMD_DOT4`) |
+| 0x15  | `OP_B2`       | RW  | 0x00  | Lane-2 multiplicand B (`CMD_DOT4`) |
+| 0x16  | `OP_A3`       | RW  | 0x00  | Lane-3 multiplicand A (`CMD_DOT4`) |
+| 0x17  | `OP_B3`       | RW  | 0x00  | Lane-3 multiplicand B (`CMD_DOT4`) |
 
 Commands (write to `CMD`):
 
@@ -74,6 +80,7 @@ Commands (write to `CMD`):
 | 0x01 | `CMD_MAC`      | `acc ← acc + OP_A * OP_B` |
 | 0x02 | `CMD_CLR_ACC`  | `acc ← 0` (config registers untouched) |
 | 0x03 | `CMD_POSTPROC` | Drive `acc` through bias → activation → quantize; result lands in `RESULT` |
+| 0x04 | `CMD_DOT4`     | 4-cycle burst MAC: `acc ← acc + Σ OP_A{i} * OP_B{i}` for i = 0..3 (lane 0 = `OP_A`/`OP_B`, lanes 1..3 = `OP_A1..3`/`OP_B1..3`) |
 | 0xFF | `CMD_RESET`    | Soft reset: clears `acc`, `RESULT`, sticky flags; preserves `OP_A`/`OP_B`/`BIAS`/`QUANT_SHIFT`/`ACT_MODE` |
 
 ### Pin map

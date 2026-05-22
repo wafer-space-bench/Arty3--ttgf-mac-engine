@@ -51,12 +51,20 @@ A_ACC_B2      = 0x0A
 A_ACC_B3      = 0x0B
 A_RESULT      = 0x0C
 A_FEATURE_ID  = 0x10
+# Lane 1..3 operand registers for CMD_DOT4 (lane 0 uses A_OP_A / A_OP_B)
+A_OP_A1       = 0x12
+A_OP_B1       = 0x13
+A_OP_A2       = 0x14
+A_OP_B2       = 0x15
+A_OP_A3       = 0x16
+A_OP_B3       = 0x17
 
 # CMD opcodes
 CMD_NOP       = 0x00
 CMD_MAC       = 0x01
 CMD_CLR_ACC   = 0x02
 CMD_POSTPROC  = 0x03
+CMD_DOT4      = 0x04
 CMD_RESET     = 0xFF
 
 # ACT_MODE encodings (npu_types_pkg::act_mode_e)
@@ -245,6 +253,68 @@ async def test_accumulate_many(dut):
         await wait_idle(dut)
     acc = await spi_read_acc(dut)
     assert acc == 7 * 4 * 5, f"ACC expected {7 * 4 * 5}, got {acc}"
+
+
+@cocotb.test()
+async def test_dot4_basic(dut):
+    """CMD_DOT4 runs 4 back-to-back MACs over (OP_A{0..3}, OP_B{0..3})."""
+    await reset_dut(dut)
+    await spi_write(dut, A_CMD, CMD_CLR_ACC)
+    await wait_idle(dut)
+    # Lane 0 uses A_OP_A / A_OP_B; lanes 1..3 use the dedicated regs.
+    pairs = [(2, 3), (5, 7), (-4, 6), (10, -8)]  # acc += 6 + 35 - 24 - 80 = -63
+    await spi_write(dut, A_OP_A,  pairs[0][0] & 0xFF)
+    await spi_write(dut, A_OP_B,  pairs[0][1] & 0xFF)
+    await spi_write(dut, A_OP_A1, pairs[1][0] & 0xFF)
+    await spi_write(dut, A_OP_B1, pairs[1][1] & 0xFF)
+    await spi_write(dut, A_OP_A2, pairs[2][0] & 0xFF)
+    await spi_write(dut, A_OP_B2, pairs[2][1] & 0xFF)
+    await spi_write(dut, A_OP_A3, pairs[3][0] & 0xFF)
+    await spi_write(dut, A_OP_B3, pairs[3][1] & 0xFF)
+    await spi_write(dut, A_CMD, CMD_DOT4)
+    await wait_idle(dut)
+    expected = sum(a * b for a, b in pairs)
+    acc = await spi_read_acc(dut)
+    assert acc == expected, f"DOT4 ACC expected {expected}, got {acc}"
+
+
+@cocotb.test()
+async def test_dot4_lane_regs_loopback(dut):
+    """Lane 1..3 operand registers round-trip through SPI."""
+    await reset_dut(dut)
+    cases = [
+        (A_OP_A1, 0x11), (A_OP_B1, 0x22),
+        (A_OP_A2, 0x33), (A_OP_B2, 0x44),
+        (A_OP_A3, 0x55), (A_OP_B3, 0x66),
+    ]
+    for a, d in cases:
+        await spi_write(dut, a, d)
+    for a, d in cases:
+        rd = await spi_read(dut, a)
+        assert rd == d, f"reg 0x{a:02x}: expected 0x{d:02x}, got 0x{rd:02x}"
+
+
+@cocotb.test()
+async def test_dot4_accumulates_with_prior(dut):
+    """CMD_DOT4 accumulates on top of the existing ACC, like CMD_MAC."""
+    await reset_dut(dut)
+    await spi_write(dut, A_CMD, CMD_CLR_ACC)
+    await wait_idle(dut)
+    # Seed ACC with a single MAC first.
+    await spi_write(dut, A_OP_A, 9)
+    await spi_write(dut, A_OP_B, 4)
+    await spi_write(dut, A_CMD, CMD_MAC)
+    await wait_idle(dut)
+    seed = 9 * 4
+    # Then DOT4 four MACs of 1*1.
+    for a in (A_OP_A, A_OP_A1, A_OP_A2, A_OP_A3):
+        await spi_write(dut, a, 1)
+    for b in (A_OP_B, A_OP_B1, A_OP_B2, A_OP_B3):
+        await spi_write(dut, b, 1)
+    await spi_write(dut, A_CMD, CMD_DOT4)
+    await wait_idle(dut)
+    acc = await spi_read_acc(dut)
+    assert acc == seed + 4, f"DOT4 accumulate expected {seed + 4}, got {acc}"
 
 
 @cocotb.test()

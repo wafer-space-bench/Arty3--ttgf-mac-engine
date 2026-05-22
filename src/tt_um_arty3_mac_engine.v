@@ -63,6 +63,8 @@ module tt_um_arty3_mac_engine (
 
     wire signed [7:0]  op_a;
     wire signed [7:0]  op_b;
+    wire signed [7:0]  op_a1, op_a2, op_a3;
+    wire signed [7:0]  op_b1, op_b2, op_b3;
     wire signed [7:0]  bias_val;
     wire        [4:0]  quant_shift_val;
     wire        [1:0]  act_mode_bits;
@@ -135,6 +137,12 @@ module tt_um_arty3_mac_engine (
         .fsm_state           (fsm_state),
         .op_a                (op_a),
         .op_b                (op_b),
+        .op_a1               (op_a1),
+        .op_b1               (op_b1),
+        .op_a2               (op_a2),
+        .op_b2               (op_b2),
+        .op_a3               (op_a3),
+        .op_b3               (op_b3),
         .bias_val            (bias_val),
         .quant_shift_val     (quant_shift_val),
         .act_mode_bits       (act_mode_bits),
@@ -157,6 +165,12 @@ module tt_um_arty3_mac_engine (
         .cmd_code     (cmd_code),
         .op_a         (op_a),
         .op_b         (op_b),
+        .op_a1        (op_a1),
+        .op_b1        (op_b1),
+        .op_a2        (op_a2),
+        .op_b2        (op_b2),
+        .op_a3        (op_a3),
+        .op_b3        (op_b3),
         .fsm_state    (fsm_state),
         .mac_overflow (mac_overflow),
         .pp_done      (pp_done),
