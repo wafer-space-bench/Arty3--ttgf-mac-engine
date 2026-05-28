@@ -36,9 +36,7 @@ module tt_um_arty3_mac_engine (
     input  wire       rst_n     // active-low asynchronous reset
 );
 
-    // ------------------------------------------------------------------------
     // Reset synchroniser (sec 8.1): 2-flop async-assert / sync-deassert.
-    // ------------------------------------------------------------------------
 
     reg [1:0] rst_sync_ff;
     wire      rst_n_sync;
