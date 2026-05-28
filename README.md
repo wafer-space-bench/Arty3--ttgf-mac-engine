@@ -31,7 +31,7 @@ wrapper adds the SPI slave, a register file, and a command FSM.
 
 ## GDS Render
 
-![](./assets/gds_render.png)
+![](./assets/gds_map_render.png)
 
 For a full 3D view click [here](https://arty3.github.io/ttgf-mac-engine/)
 
