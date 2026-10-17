@@ -1,0 +1,26 @@
+source:
+  url: https://github.com/Arty3/ttgf-mac-engine
+  original_url: null
+  kind: fork
+  why: GitHub fork of the upstream repository
+  licence: null
+  upstream_default_branch: main
+tapeouts:
+- org: tinytapeout
+  run: ttgf26a
+  slot: tt_um_arty3_mac_engine
+  project: Simple MAC Engine w/ Postproc
+  size: 1x2
+  kind: digital (SystemVerilog)
+  commit: 50e7e7eecd6e06d4fef7fc8909e2d32317732cda
+  commit_source: commit from the shuttle repo's projects/<name>/commit_id.json
+  tag: tinytapeout/ttgf26a/tt_um_arty3_mac_engine
+  branch: tapeout/tinytapeout/ttgf26a/tt_um_arty3_mac_engine
+  page: https://app.tinytapeout.com/shuttles/ttgf26a
+generated: '2026-10-17T23:09:08Z'
+tooling: https://github.com/wafer-space/wafer.space-bench
+index: https://wafer-space-bench.github.io
+branches:
+- about
+- tapeout/tinytapeout/ttgf26a/tt_um_arty3_mac_engine
+- upstream/main
